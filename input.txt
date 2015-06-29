@@ -1,2 +1,10 @@
-
-(3 4 (5 "as  \n'df") (:asdf-d 3 4 asdf dl) {:d 3} [3 2 "d"])
+(def fs (require "fs"))
+(def peg (require "pegjs"))
+(def parser (.buildParser peg (.readFileSync fs "grammar.peg" "utf8")))
+(def result (.parse parser (.readFileSync fs "input.txt" "utf8")))
+(render result)
+(defn stringify_str_elm [e]
+  (if (== (typeof e) "string")
+    (return (.stringify JSON e))
+    (return (compile e))))
+(defn compile [sexp] (str "A" (plus 3 3) "A"))

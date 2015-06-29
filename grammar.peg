@@ -1,7 +1,6 @@
 /* derived from JSON grammar in examples dir in peg.js */
 
-start
-  = ws value:value ws { return value; }
+start = values
 
 ws "whitespace" = [ \t\n\r]*
 
@@ -20,7 +19,7 @@ value
 false = "false" { return false; }
 nil   = "nil"  { return null;  }
 true  = "true"  { return true;  }
-symbol = x:[a-zA-Z:-]+ { return x.join("") }
+symbol = x:[a-zA-Z.:_=-]+ { return x.join("") }
 
 
 /* ----- 5. Arrays ----- */
