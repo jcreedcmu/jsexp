@@ -14,4 +14,8 @@
   (if (== (get (get sexp 0) 0) ".")
     (return (str (compile (get sexp 1))
                  (get sexp 0)
-                 "(" (.join (.map (.slice sexp 2) compile) ", ") ")"))))
+                 "(" (.join (.map (.slice sexp 2) compile) ", ") ")")))
+  (if (== (get sexp 0) "get")
+    (return (str
+             (compile (get sexp 1))
+             "[" (compile (get sexp 2)) "]"))))
