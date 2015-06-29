@@ -15,7 +15,6 @@ if (typeof(e) == "string") {return(JSON.stringify(e))} else {return(compile(e))}
 function compile(sexp) {
 if (typeof(sexp) == "string") {return(sexp)}
 if (typeof(sexp) == "number") {return(sexp)}
-if (typeof(sexp) == "boolean") {return(sexp)}
 if (sexp[0][0] == ".") {return(compile(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")")}
 if (sexp[0] == "get") {return(compile(sexp[1]) + "[" + compile(sexp[2]) + "]")}
 if (sexp[0] == "if") {if (sexp[3] == null) {return("if (" + compile(sexp[1]) + ") {" + compile(sexp[2]) + "}")} else {return("if (" + compile(sexp[1]) + ") {" + compile(sexp[2]) + "} else {" + compile(sexp[3]) + "}")}}

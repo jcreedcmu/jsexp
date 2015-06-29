@@ -12,7 +12,6 @@
 (defn compile [sexp]
   (if (== (typeof sexp) "string") (return sexp))
   (if (== (typeof sexp) "number") (return sexp))
-  (if (== (typeof sexp) "boolean") (return sexp))
   (if (== (get (get sexp 0) 0) ".")
     (return (str (compile (get sexp 1))
                  (get sexp 0)
