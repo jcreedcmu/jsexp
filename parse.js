@@ -14,9 +14,10 @@ function compile(sexp) {
 //  console.log(sexp, typeof(sexp));
 
   if (sexp[0].match(/^\./)) {
-    return sexp[1] + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")";
+    return compile(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")";
   }
   switch (sexp[0]) {
+  case "get": return compile(sexp[1]) + "[" + compile(sexp[2]) + "]";
   case "if":
     if (sexp[3] != null)
       return "if (" + compile(sexp[1]) + ") {" + compile(sexp[2]) + "} else {" + compile(sexp[3]) + "}";

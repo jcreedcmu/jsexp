@@ -7,4 +7,10 @@
   (if (== (typeof e) "string")
     (return (.stringify JSON e))
     (return (compile e))))
-(defn compile [sexp] (str "A" (plus 3 3) "A"))
+(defn compile [sexp]
+  (if (== (typeof sexp) "string") (return sexp))
+  (if (== (typeof sexp) "number") (return sexp))
+  (if (== (typeof sexp) "boolean") (return sexp))
+  (if (== (get (get sexp 0) 0) ".")
+    (return (str (compile (get sexp 1))
+                 (get sexp 0) "(" (.join (.map (.slice sexp 2) compile) ", ")))))
