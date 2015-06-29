@@ -8,14 +8,12 @@ if (typeof(e) == "string") {return(JSON.stringify(e))} else {return(compile(e))}
 }
 
 function compile(sexp) {
-  if (typeof(sexp) == "string" || typeof(sexp) == "number" || typeof(sexp) == "boolean") {
-    return sexp;
-  }
-//  console.log(sexp, typeof(sexp));
 
-  if (sexp[0].match(/^\./)) {
-    return compile(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")";
-  }
+  if (typeof(sexp) == "string") {return(sexp)}
+  if (typeof(sexp) == "number") {return(sexp)}
+  if (typeof(sexp) == "boolean") {return(sexp)}
+  if (sexp[0][0] == ".") {return(compile(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")")}
+
   switch (sexp[0]) {
   case "get": return compile(sexp[1]) + "[" + compile(sexp[2]) + "]";
   case "if":
