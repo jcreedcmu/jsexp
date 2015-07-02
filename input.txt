@@ -3,8 +3,8 @@
 (def parser (.buildParser peg (.readFileSync fs "grammar.peg" "utf8")))
 (def result (.parse parser (.readFileSync fs "input.txt" "utf8")))
 (render result)
-(defn render [sexps] (.forEach sexps render_one))
-(defn render_one [sexp] (.log console (compile sexp)))
+
+(defn render [sexps] (.forEach sexps (fn [sexp] (.log console (compile sexp)))))
 (defn stringify_str_elm [e]
   (if (== (typeof e) "string")
     (return (.stringify JSON e))
@@ -37,5 +37,11 @@
                  (.join (.slice (get sexp 2) 1) ", ")
                  ") {\n"
                  (.join (.map (.slice sexp 3) compile) "\n")
+                 "\n}")))
+  (if (== (get sexp 0) "fn")
+    (return (str "function ("
+                 (.join (.slice (get sexp 1) 1) ", ")
+                 ") {\n"
+                 (.join (.map (.slice sexp 2) compile) "\n")
                  "\n}")))
   (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile) ", ") ")")))
