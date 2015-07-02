@@ -4,7 +4,9 @@
 (def result (.parse parser (.readFileSync fs "input.txt" "utf8")))
 (render result)
 
-(defn render [sexps] (.forEach sexps (fn [sexp] (.log console (compile sexp)))))
+(defn render [sexps]
+  (def env {})
+  (.forEach sexps (fn [sexp] (.log console (compile sexp)))))
 (defn stringify_str_elm [e]
   (if (== (typeof e) "string")
     (return (.stringify JSON e))
@@ -12,10 +14,11 @@
 (defn compile [sexp]
   (if (== (typeof sexp) "string") (return sexp))
   (if (== (typeof sexp) "number") (return sexp))
-  (if (== (get (get sexp 0) 0) ".")
-    (return (str (compile (get sexp 1))
-                 (get sexp 0)
-                 "(" (.join (.map (.slice sexp 2) compile) ", ") ")")))
+  (if (get sexp 0)
+    (if (== (get (get sexp 0) 0) ".")
+      (return (str (compile (get sexp 1))
+                   (get sexp 0)
+                   "(" (.join (.map (.slice sexp 2) compile) ", ") ")"))))
   (if (== (get sexp 0) "get")
     (return (str
              (compile (get sexp 1))
@@ -44,4 +47,6 @@
                  ") {\n"
                  (.join (.map (.slice sexp 2) compile) "\n")
                  "\n}")))
+  (if (== (get sexp 0) "map")
+    (return (str "{}")))
   (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile) ", ") ")")))
