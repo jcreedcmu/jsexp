@@ -6,47 +6,48 @@
 
 (defn render [sexps]
   (def env {})
-  (.forEach sexps (fn [sexp] (.log console (compile sexp)))))
-(defn stringify_str_elm [e]
+  (.forEach sexps (fn [sexp] (.log console (compile env sexp)))))
+(defn stringify_str_elm [env e]
   (if (== (typeof e) "string")
     (return (.stringify JSON e))
-    (return (compile e))))
-(defn compile [sexp]
+    (return (compile env e))))
+(defn compile [env sexp]
+  (def compile_env (fn [sexp] (return (compile env sexp))))
   (if (== (typeof sexp) "string") (return sexp))
   (if (== (typeof sexp) "number") (return sexp))
   (if (get sexp 0)
     (if (== (get (get sexp 0) 0) ".")
-      (return (str (compile (get sexp 1))
+      (return (str (compile_env (get sexp 1))
                    (get sexp 0)
-                   "(" (.join (.map (.slice sexp 2) compile) ", ") ")"))))
+                   "(" (.join (.map (.slice sexp 2) compile_env) ", ") ")"))))
   (if (== (get sexp 0) "get")
     (return (str
-             (compile (get sexp 1))
-             "[" (compile (get sexp 2)) "]")))
+             (compile_env (get sexp 1))
+             "[" (compile_env (get sexp 2)) "]")))
   (if (== (get sexp 0) "if")
     (if (== (get sexp 3) null)
-      (return (str "if (" (compile (get sexp 1)) ") {" (compile (get sexp 2)) "}"))
-      (return (str "if (" (compile (get sexp 1)) ") {" (compile (get sexp 2)) "} else {"
-                   (compile (get sexp 3)) "}"))))
+      (return (str "if (" (compile_env (get sexp 1)) ") {" (compile_env (get sexp 2)) "}"))
+      (return (str "if (" (compile_env (get sexp 1)) ") {" (compile_env (get sexp 2)) "} else {"
+                   (compile_env (get sexp 3)) "}"))))
   (if (== (get sexp 0) "def")
-    (return (str "var " (get sexp 1) " = " (compile (get sexp 2)))))
+    (return (str "var " (get sexp 1) " = " (compile_env (get sexp 2)))))
   (if (== (get sexp 0) "==")
-    (return (str (compile (get sexp 1)) " == " (compile (get sexp 2)))))
+    (return (str (compile_env (get sexp 1)) " == " (compile_env (get sexp 2)))))
   (if (== (get sexp 0) "str")
-    (return (.join (.map (.slice sexp 1) stringify_str_elm) " + ")))
+    (return (.join (.map (.slice sexp 1) (fn [exp] (return (stringify_str_elm env exp)))) " + ")))
   (if (== (get sexp 0) "defn")
     (return (str "function " (get sexp 1)
                  "("
                  (.join (.slice (get sexp 2) 1) ", ")
                  ") {\n"
-                 (.join (.map (.slice sexp 3) compile) "\n")
+                 (.join (.map (.slice sexp 3) compile_env) "\n")
                  "\n}")))
   (if (== (get sexp 0) "fn")
     (return (str "function ("
                  (.join (.slice (get sexp 1) 1) ", ")
                  ") {\n"
-                 (.join (.map (.slice sexp 2) compile) "\n")
+                 (.join (.map (.slice sexp 2) compile_env) "\n")
                  "\n}")))
   (if (== (get sexp 0) "map")
     (return (str "{}")))
-  (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile) ", ") ")")))
+  (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile_env) ", ") ")")))

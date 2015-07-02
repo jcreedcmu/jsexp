@@ -6,23 +6,28 @@ render(result)
 function render(sexps) {
 var env = {}
 sexps.forEach(function (sexp) {
-console.log(compile(sexp))
+console.log(compile(env, sexp))
 })
 }
-function stringify_str_elm(e) {
-if (typeof(e) == "string") {return(JSON.stringify(e))} else {return(compile(e))}
+function stringify_str_elm(env,e) {
+if (typeof(e) == "string") {return(JSON.stringify(e))} else {return(compile(env, e))}
 }
-function compile(sexp) {
+function compile(env,sexp) {
+var compile_env = function (sexp) {
+return(compile(env, sexp))
+}
 if (typeof(sexp) == "string") {return(sexp)}
 if (typeof(sexp) == "number") {return(sexp)}
-if (sexp[0]) {if (sexp[0][0] == ".") {return(compile(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile).join(", ") + ")")}}
-if (sexp[0] == "get") {return(compile(sexp[1]) + "[" + compile(sexp[2]) + "]")}
-if (sexp[0] == "if") {if (sexp[3] == null) {return("if (" + compile(sexp[1]) + ") {" + compile(sexp[2]) + "}")} else {return("if (" + compile(sexp[1]) + ") {" + compile(sexp[2]) + "} else {" + compile(sexp[3]) + "}")}}
-if (sexp[0] == "def") {return("var " + sexp[1] + " = " + compile(sexp[2]))}
-if (sexp[0] == "==") {return(compile(sexp[1]) + " == " + compile(sexp[2]))}
-if (sexp[0] == "str") {return(sexp.slice(1).map(stringify_str_elm).join(" + "))}
-if (sexp[0] == "defn") {return("function " + sexp[1] + "(" + sexp[2].slice(1).join(", ") + ") {\n" + sexp.slice(3).map(compile).join("\n") + "\n}")}
-if (sexp[0] == "fn") {return("function (" + sexp[1].slice(1).join(", ") + ") {\n" + sexp.slice(2).map(compile).join("\n") + "\n}")}
+if (sexp[0]) {if (sexp[0][0] == ".") {return(compile_env(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile_env).join(", ") + ")")}}
+if (sexp[0] == "get") {return(compile_env(sexp[1]) + "[" + compile_env(sexp[2]) + "]")}
+if (sexp[0] == "if") {if (sexp[3] == null) {return("if (" + compile_env(sexp[1]) + ") {" + compile_env(sexp[2]) + "}")} else {return("if (" + compile_env(sexp[1]) + ") {" + compile_env(sexp[2]) + "} else {" + compile_env(sexp[3]) + "}")}}
+if (sexp[0] == "def") {return("var " + sexp[1] + " = " + compile_env(sexp[2]))}
+if (sexp[0] == "==") {return(compile_env(sexp[1]) + " == " + compile_env(sexp[2]))}
+if (sexp[0] == "str") {return(sexp.slice(1).map(function (exp) {
+return(stringify_str_elm(env, exp))
+}).join(" + "))}
+if (sexp[0] == "defn") {return("function " + sexp[1] + "(" + sexp[2].slice(1).join(", ") + ") {\n" + sexp.slice(3).map(compile_env).join("\n") + "\n}")}
+if (sexp[0] == "fn") {return("function (" + sexp[1].slice(1).join(", ") + ") {\n" + sexp.slice(2).map(compile_env).join("\n") + "\n}")}
 if (sexp[0] == "map") {return("{}")}
-return(sexp[0] + "(" + sexp.slice(1).map(compile).join(", ") + ")")
+return(sexp[0] + "(" + sexp.slice(1).map(compile_env).join(", ") + ")")
 }
