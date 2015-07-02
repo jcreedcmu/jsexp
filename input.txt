@@ -1,3 +1,29 @@
+(defmacro def (fn [sexp compile_env]
+                (return (str "var " (get sexp 1) " = " (compile_env (get sexp 2))))))
+
+(defmacro defn (fn [sexp compile_env]
+     (return (str "function " (get sexp 1)
+                  "("
+                  (.join (.slice (get sexp 2) 1) ", ")
+                  ") {\n"
+                  (.join (.map (.slice sexp 3) compile_env) "\n")
+                  "\n}"))))
+
+(defmacro ==  (fn [sexp compile_env]
+                (return (str (compile_env (get sexp 1)) " == " (compile_env (get sexp 2))))))
+
+(defmacro set (fn [sexp compile_env]
+     (return (str
+              (compile_env (get sexp 1))
+              "[" (compile_env (get sexp 2)) "] = "
+              (compile_env (get sexp 3))))))
+
+(defmacro when (fn [sexp]
+                 (return (str "if (" (compile_env (get sexp 1)) ") {" (.join (.map (.slice sexp 2) compile_env) "\n") "}"))))
+
+(defmacro map (fn [sexp] (return (str "{}"))))
+
+
 (def fs (require "fs"))
 (def peg (require "pegjs"))
 (def parser (.buildParser peg (.readFileSync fs "grammar.peg" "utf8")))
@@ -7,13 +33,11 @@
 (defn render [sexps]
   (def env {})
   (.forEach sexps (fn [sexp] (.log console (compile env sexp)))))
+
 (defn stringify_str_elm [env e]
   (if (== (typeof e) "string")
     (return (.stringify JSON e))
     (return (compile env e))))
-
-(defmacro when (fn [sexp]
-                  (return (str "if (" (compile_env (get sexp 1)) ") {" (.join (.map (.slice sexp 2) compile_env) "\n") "}"))))
 
 (defn compile [env sexp]
   (def compile_env (fn [sexp] (return (compile env sexp))))
@@ -31,12 +55,6 @@
     (return (str
              (compile_env (get sexp 1))
              "[" (compile_env (get sexp 2)) "]")))
-  (if (== (get sexp 0) "set")
-    (return (str
-             (compile_env (get sexp 1))
-             "[" (compile_env (get sexp 2)) "] = "
-             (compile_env (get sexp 3)))))
-  (if (== (get sexp 0) "debug") (return (.stringify JSON env)))
   (when (== (get sexp 0) "defmacro")
     (set env (get sexp 1) (eval (str "(" (compile_env (get sexp 2)) ")")))
     (return ""))
@@ -45,25 +63,12 @@
       (return (str "if (" (compile_env (get sexp 1)) ") {" (compile_env (get sexp 2)) "}"))
       (return (str "if (" (compile_env (get sexp 1)) ") {" (compile_env (get sexp 2)) "} else {"
                    (compile_env (get sexp 3)) "}"))))
-  (if (== (get sexp 0) "def")
-    (return (str "var " (get sexp 1) " = " (compile_env (get sexp 2)))))
-  (if (== (get sexp 0) "==")
-    (return (str (compile_env (get sexp 1)) " == " (compile_env (get sexp 2)))))
   (if (== (get sexp 0) "str")
     (return (.join (.map (.slice sexp 1) (fn [exp] (return (stringify_str_elm env exp)))) " + ")))
-  (if (== (get sexp 0) "defn")
-    (return (str "function " (get sexp 1)
-                 "("
-                 (.join (.slice (get sexp 2) 1) ", ")
-                 ") {\n"
-                 (.join (.map (.slice sexp 3) compile_env) "\n")
-                 "\n}")))
   (if (== (get sexp 0) "fn")
     (return (str "function ("
                  (.join (.slice (get sexp 1) 1) ", ")
                  ") {\n"
                  (.join (.map (.slice sexp 2) compile_env) "\n")
                  "\n}")))
-  (if (== (get sexp 0) "map")
-    (return (str "{}")))
   (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile_env) ", ") ")")))
