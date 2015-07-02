@@ -19,11 +19,12 @@ return(compile(env, sexp))
 if (typeof(sexp) == "string") {return(sexp)}
 if (typeof(sexp) == "number") {return(sexp)}
 if (sexp[0]) {if (sexp[0][0] == ".") {return(compile_env(sexp[1]) + sexp[0] + "(" + sexp.slice(2).map(compile_env).join(", ") + ")")}}
-if (env[sexp[0]]) {return(compile_env(get,env,get,sexp,0(sexp)))}
+var macro = env[sexp[0]]
+if (macro) {return(compile_env(macro(sexp)))}
 if (sexp[0] == "get") {return(compile_env(sexp[1]) + "[" + compile_env(sexp[2]) + "]")}
 if (sexp[0] == "set") {return(compile_env(sexp[1]) + "[" + compile_env(sexp[2]) + "] = " + compile_env(sexp[3]))}
 if (sexp[0] == "debug") {return(JSON.stringify(env))}
-if (sexp[0] == "defmacro") {env[sexp[1]] = compile_env(sexp[2])
+if (sexp[0] == "defmacro") {env[sexp[1]] = eval("(" + compile_env(sexp[2]) + ")")
 return("")}
 if (sexp[0] == "if") {if (sexp[3] == null) {return("if (" + compile_env(sexp[1]) + ") {" + compile_env(sexp[2]) + "}")} else {return("if (" + compile_env(sexp[1]) + ") {" + compile_env(sexp[2]) + "} else {" + compile_env(sexp[3]) + "}")}}
 if (sexp[0] == "when") {return("if (" + compile_env(sexp[1]) + ") {" + sexp.slice(2).map(compile_env).join("\n") + "}")}
@@ -37,5 +38,3 @@ if (sexp[0] == "fn") {return("function (" + sexp[1].slice(1).join(", ") + ") {\n
 if (sexp[0] == "map") {return("{}")}
 return(sexp[0] + "(" + sexp.slice(1).map(compile_env).join(", ") + ")")
 }
-
-var deb = {"null":"function (x) {\nreturn(x[1])\n}"}

@@ -20,8 +20,9 @@
       (return (str (compile_env (get sexp 1))
                    (get sexp 0)
                    "(" (.join (.map (.slice sexp 2) compile_env) ", ") ")"))))
-  (if (get env (get sexp 0))
-    (return (compile_env ((get env (get sexp 0)) sexp))))
+  (def macro (get env (get sexp 0)))
+  (when macro
+    (return (compile_env (macro sexp))))
   (if (== (get sexp 0) "get")
     (return (str
              (compile_env (get sexp 1))
@@ -33,7 +34,7 @@
              (compile_env (get sexp 3)))))
   (if (== (get sexp 0) "debug") (return (.stringify JSON env)))
   (when (== (get sexp 0) "defmacro")
-    (set env (get sexp 1) (compile_env (get sexp 2)))
+    (set env (get sexp 1) (eval (str "(" (compile_env (get sexp 2)) ")")))
     (return ""))
   (if (== (get sexp 0) "if")
     (if (== (get sexp 3) null)
@@ -64,6 +65,3 @@
   (if (== (get sexp 0) "map")
     (return (str "{}")))
   (return (str (get sexp 0) "(" (.join (.map (.slice sexp 1) compile_env) ", ") ")")))
-
-(defmacro null (fn [x] (return (get x 1))))
-(def deb (debug))
